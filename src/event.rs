@@ -94,24 +94,14 @@ fn start_events(options: Arc<DaemonOptions>, config: ConfigMutex) -> Result<()> 
 }
 
 fn keep_alive(mut handle: JoinHandle<()>, options: Arc<DaemonOptions>, config: ConfigMutex) {
-    let max_restarts = 50;
-    let mut restarts = 0;
-
     loop {
         let _ = handle.join();
+
+        sleep(Duration::from_secs(2));
+        let _ = log("Event listener disconnected, restarting...".to_string(), Warn);
+
         let config = config.clone();
         let options = options.clone();
-
-        restarts += 1;
-        if restarts >= max_restarts {
-            let _ = log(
-                "Event listener repeated panic, terminating thread.".to_string(),
-                Warn,
-            );
-            break;
-        }
-
-        let _ = log("Event listener panic, restarting thread".to_string(), Warn);
         handle = spawn(|| start_events(options, config).log_err(file!(), line!()));
     }
 }

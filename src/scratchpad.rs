@@ -201,6 +201,20 @@ impl Scratchpad {
 
         if state.clients_with_title.is_empty() {
             self.spawn_special(state);
+            for _ in 0..15 {
+                std::thread::sleep(std::time::Duration::from_millis(200));
+                if let Ok(all_clients) = hyprland::data::Clients::get() {
+                    if all_clients.iter().any(|c| self.matches_client(c)) {
+                        let fresh = HyprlandState::new(&self.title, &state.special_workspace)?;
+                        move_to_special(
+                            &all_clients.iter().find(|c| self.matches_client(c)).unwrap(),
+                            &state.special_workspace,
+                        );
+                        fresh.toggle_special()?;
+                        return Ok(());
+                    }
+                }
+            }
         } else if special_with_title.is_empty() {
             self.capture_special(state)?;
         } else {

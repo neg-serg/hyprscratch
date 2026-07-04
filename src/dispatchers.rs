@@ -31,14 +31,19 @@ fn call_lua(expr: &str) -> Result<()> {
 impl Dispatchers {
     fn init() -> Self {
         Self {
-            lang: detect_config_language(),
+            lang: ConfigLanguage::Lua,
         }
     }
 
     pub fn exec(&self, cmd: &str) -> Result<()> {
         match self.lang {
             ConfigLanguage::Hyprlang => call("exec", cmd),
-            ConfigLanguage::Lua => call_lua(&format!("hl.dsp.exec_cmd({})", lua_str(cmd))),
+            ConfigLanguage::Lua => {
+                let clean = if let Some(rest) = cmd.strip_prefix('[') {
+                    rest.find("] ").map(|i| &rest[i+2..]).unwrap_or(cmd)
+                } else { cmd };
+                call_lua(&format!("hl.dsp.exec_cmd({})", lua_str(clean)))
+            }
         }
     }
 
