@@ -25,3 +25,10 @@ unit_arg = "allow"
 wildcard_imports = "allow"
 wrong_self_convention = "allow"
 perf = { level = "warn", priority = -1 }
+
+# Hyprland 0.57 dropped the `id` field from special-workspace objects, which
+# makes hyprland 0.4.0-beta.3 fail to deserialize `monitors -j` / `clients -j`
+# ("missing field `id`") and kills every scratchpad toggle. The last published
+# crate is 0.4.0-beta.3, so the fix is vendored: `id` is `#[serde(default)]`.
+[patch.crates-io]
+hyprland = { path = "vendor/hyprland" }
